@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE yml_catalog SYSTEM "shops.dtd">
+<yml_catalog date="2023-04-15T16:42:09+03:00">
+    <shop>
+        <name>Стройбат Новороссийс</name>
+        <company>Стройбат Новороссийск</company>
+        <url>https://www.stroybat23.ru</url>
+        <currencies>
+            <currency id="RUR" rate="1"/>
+        </currencies>
+        <categories>
+            <category id="19723838">Ванны</category>
+            <category id="19723842" parentId="19723838">Ванны мраморные</category>
+            <category id="19723839" parentId="19723838">Ванны акриловые</category>
+            <category id="21368126" parentId="19723842">Ванны мраморные Aqua de Marco</category>
+            <category id="19723870" parentId="19723839">Ванны акриловые Roca</category>
+        </categories>
+        <offers>
+            <offer id="305020995" available="true">
+                <url>https://www.stroybat23.ru/products/305020995-vanna_bristol_mira_180kh80_bez_ekrana</url>
+                <price>52650.0</price>
+                <currencyId>RUR</currencyId>
+                <categoryId>21368126</categoryId>
+                <picture>https://st1.stblizko.ru/images/product/560/186/004_original.jpg</picture>
+                <picture>https://st14.stblizko.ru/images/product/557/474/189_original.jpg</picture>
+                <picture>https://st36.stblizko.ru/images/product/501/054/574_original.jpg</picture>
+                <vendor>Производитель</vendor>
+                <vendorCode>1180WMIR</vendorCode>
+                <country_of_origin>Россия</country_of_origin>
+                <name>Ванна Bristol Мира 180х80 без экрана</name>
+                <description><![CDATA[Способы доставки: Самовывоз по адресу г. Новороссийск , пос. Цемдолина , пер. Запрудный д. 6. Доставка собственным автопарком компании по г.
+                    Новороссийск и ближайшим городам Способы оплаты: Наличный расчет Безналичный расчет Расчет банковской картой Чтобы заказать Ванна Bristol Мира 180х80 без
+                    экрана, звоните нам или оставляйте заявку на нашем сайте. Купить в рассрочку Если Вам понравился наш товар и Вы хотите его купить, Вы можете нажать на
+                    кнопку для оформления товара в рассрочку. Купить в рассрочку]]>
+                </description>
+                <store>false</store>
+                <pickup>true</pickup>
+                <delivery>true</delivery>
+                <sales_notes>Наличный расчет, Безналичный расчет</sales_notes>
+                <param name="Вес">9</param>
+                <param name="ЛогоВендора">https://art-sites.ru//assets/components/phpthumbof/cache/logo-icon-w.4113b3f984c288dac851d68881c111ed.webp</param>
+                <param name="Длинна,см">180</param>
+                <param name="Ширина,см">80</param>
+                <param name="Форма"><![CDATA[Прямоугольная]]></param>
+            </offer>
+            <offer id="304893961" available="true">
+                <url>https://www.stroybat23.ru/products/304893961-vanna_roca_hall_angular_150kh100_ekran_podgolovnik</url>
+                <price>32500.0</price>
+                <currencyId>RUR</currencyId>
+                <categoryId>19723870</categoryId>
+                <picture>https://st1.stblizko.ru/images/product/559/347/218_original.jpg</picture>
+                <picture>https://st1.stblizko.ru/images/product/559/347/425_original.jpg</picture>
+                <picture>https://st1.stblizko.ru/images/product/559/347/537_original.jpg</picture>
+                <picture>https://st1.stblizko.ru/images/product/559/347/682_original.jpg</picture>
+                <picture>https://st1.stblizko.ru/images/product/559/347/874_original.jpg</picture>
+                <name>Ванна Roca Hall Angular 150х100 (экран, подголовник) правая</name>
+                <description>Ванна Roca Hall Angular популярной испанской компании легко вписывается в интерьер любой ванной комнаты. Коллекция Hall Angular отличается
+                    органичными линиями и ассиметричными формами. Модель оснащена съемной фронтальной панелью, полуавтоматическим сливом-переливом и регулируемыми по высоте
+                    ножками. Изделие выполнено из качественного французского акрила, устойчивого к механическим повреждениям, обладающего небольшим весом и повышенной
+                    шумоизоляцией.  Монтажный комплект, включающий в себя хромированные ручки, каркас, комплект креплений к стене, систему слив-перелив полуавтомат, в комплект
+                    поставки не входит и заказывается отдельно. Особенности: Установка на каркас Простой монтаж Высокая износостойкость Легкий уход Правосторонняя ориентация
+                    Способы доставки: Самовывоз по адресу г. Новороссийск , пос. Цемдолина , пер. Запрудный д. 6. Доставка собственным автопарком компании по г. Новороссийск и
+                    ближайшим городам Способы оплаты: Наличный расчет Безналичный расчет Расчет банковской картой Чтобы заказать Ванна Roca Hall Angular 150х100 (экран,
+                    подголовник), звоните нам или оставляйте заявку на нашем сайте. Если Вам понравился наш товар и Вы хотите его купить, Вы можете нажать на кнопку для
+                    оформления товара в рассрочку. Купить в рассрочку
+                </description>
+                <store>false</store>
+                <pickup>true</pickup>
+                <delivery>true</delivery>
+                <sales_notes>Наличный расчет, Безналичный расчет</sales_notes>
+                <param name="Высота,см">100</param>
+                <param name="Длинна,см">150</param>
+                <param name="Форма">Асимметричная</param>
+            </offer>
+        </offers>
+    </shop>
+</yml_catalog>
