@@ -1,5 +1,4 @@
 <?php
-ini_set('memory_limit', '128M');
 define('MODX_API_MODE', true);
 require_once dirname(__FILE__, 3) . '/index.php';
 
@@ -10,6 +9,8 @@ class ImportFeed
     public string $logpath;
     public string $feedPath;
     public string $imagePath;
+    public string $finishFilePath;
+    public string $readingDataPath;
     public array $config;
     public array $options;
 
@@ -22,6 +23,8 @@ class ImportFeed
         $this->feedPath = $this->basepath . $this->config['feedPath'];
         $this->imagePath = $this->basepath . $this->config['imagePath'];
         $this->options = [];
+        $this->finishFilePath = $this->basepath . 'importfinished.txt';
+        $this->readingDataPath = $this->basepath . 'readingdata.json';
 
         $this->start();
     }
@@ -32,31 +35,39 @@ class ImportFeed
             unlink($this->logpath);
         }
 
-        if ($this->config->feedUrl) {
+        if(file_exists($this->finishFilePath)){
+            $this->log("[ImportFeed::start] Вы пытаетесь запустить повторный импорт. Если это действительно необходимо удалите файл {$this->finishFilePath}", [], 1);
+        }
+
+
+        if ($this->config['feedUrl']) {
             if ($this->downloadFeed()) {
                 $this->log('[ImportFeed::start] Загружен файл фида.');
             } else {
-                $this->log('[ImportFeed::start] Не удалось скачать файл фида.');
-                return false;
+                $this->log('[ImportFeed::start] Не удалось скачать файл фида.', [], 1);
             }
         } else {
             $this->log("[ImportFeed::start] {$this->feedPath}");
             if (file_exists($this->feedPath)) {
                 $this->log('[ImportFeed::start] Будет произведён импорт из имеющегося файла фида.');
             } else {
-                $this->log('[ImportFeed::start] Файл фида отсутствует. Загрузите его, чтобы выполнить импорт.');
-                return false;
+                $this->log('[ImportFeed::start] Файл фида отсутствует. Загрузите его, чтобы выполнить импорт.', [], 1);
             }
         }
 
-        $this->log('[ImportFeed::start] Начат импорт.');
         if ($this->config['importCategories']) {
-            $this->importCategories();
-            //$this->getCategoriesData();
+            $this->log('[ImportFeed::start] Начат импорт категорий.');
+            $this->startReading($this->feedPath, 'category', 'importCategories');
+            $this->log('[ImportFeed::start] Импорт категорий завершён.');
         }
         if ($this->config['importProducts']) {
-            $this->importProducts();
-            //$this->getProductsData();
+            $this->log('[ImportFeed::start] Начат импорт товаров.');
+            $this->startReading($this->feedPath, 'offer', 'importProducts');
+            $this->log('[ImportFeed::start] Импорт товаров завершён.');
+        }
+        file_put_contents($this->basepath . 'importfinished.txt', 'Все импорты завершены.');
+        if(file_exists($this->readingDataPath)){
+            unlink($this->readingDataPath);
         }
     }
 
@@ -77,88 +88,58 @@ class ImportFeed
         return file_put_contents($path, $html) ? $path : '';
     }
 
-    private function importCategories()
+    private function importCategories($item)
     {
-        $this->log('[ImportFeed::getCategoriesData] Начато получение данных категорий для импорта.');
-        if ($reader = $this->getXmlReader($this->feedPath, 'categories')) {
-            if ($xml = $this->readXml($reader)) {
-                $this->log('[ImportFeed::getCategoriesData] Начат импорт категорий.');
-                $c = 0;
-                foreach ($xml->category as $item) {
-                    $c++;
-                    $parentFeedId = $item->attributes()->parentId ? $item->attributes()->parentId->__toString() : '';
-                    $feedId = $item->attributes()->id ? $item->attributes()->id->__toString() : '';
-                    $categoryData = array_merge($this->config['categoryDefaultFields'], [
-                        'pagetitle' => $item->__toString(),
-                        'feed_id' => $feedId,
-                    ]);
-                    if ($feedId && $parentFeedId) {
-                        if (!$categoryData['parent'] = $this->getParentId($parentFeedId)) {
-                            return false;
-                        }
-                    }
-                    $this->manageResource($categoryData);
-                }
-            } else {
-                $this->log('[ImportFeed::getCategoriesData] Не удалось прочитать данные категорий из фида.', [], 1);
+        $parentFeedId = $item->attributes()->parentId ? $item->attributes()->parentId->__toString() : '';
+        $feedId = $item->attributes()->id ? $item->attributes()->id->__toString() : '';
+        $categoryData = array_merge($this->config['categoryDefaultFields'], [
+            'pagetitle' => $item->__toString(),
+            'feed_id' => $feedId,
+        ]);
+        if ($feedId && $parentFeedId) {
+            if (!$categoryData['parent'] = $this->getParentId($parentFeedId)) {
+                $this->log("[ImportFeed::importCategories] Не удалось получить родительский ресурс дл категории feed_id = $feedId");
+                return false;
             }
-        } else {
-            $this->log('[ImportFeed::getCategoriesData] Не удалось получить данные категорий для чтения.', [], 1);
         }
+        unset($parentFeedId, $feedId, $item);
+        $this->manageResource($categoryData);
     }
 
-    private function importProducts()
+    private function importProducts($item)
     {
-        $this->log("[ImportFeed::importProducts] $this->feedPath");
-        if ($reader = $this->getXmlReader($this->feedPath, 'offers')) {
-            if ($xml = $this->readXml($reader)) {
-                $this->log('[ImportFeed::importProducts] Начат импорт товаров.');
-                $c = 0;
-                foreach ($xml->offer as $item) {
-                    $c++;
-                    $id = $item->attributes()->id ? $item->attributes()->id->__toString() : '';
-
-                    foreach ($item->param as $param) {
-                        $key = $param->attributes()->name->__toString();
-                        $value = $param->__toString();
-                        $this->options[$key] = $value;
-                    }
-
-                    $productData = $this->getData($item, $this->config['productFields']);
-                    $vendorData = $this->getData($item, $this->config['vendorFields']);
-                    $productData = array_merge($this->config['productDefaultFields'], $productData, [
-                        'feed_id' => $id,
-                        'parent' => $this->getParentId($item->categoryId->__toString())
-                    ]);
-                    if ($this->config['removeEmpty']) {
-                        $productData = array_filter($productData, function($k, $v){
-                            return (in_array($k, ['published', 'show_in_tree', 'hidemenu']) || $v);
-                        },ARRAY_FILTER_USE_BOTH);
-                        $vendorData = array_filter($vendorData, fn($el) => $el);
-                    }
-                    if ($vendorData['name']) {
-                        $productData['vendor'] = $this->createVendor($vendorData);
-                    }
-
-                    if ($resource = $this->modx->getObject('modResource', $this->manageResource($productData))) {
-                        if($this->config['setOptions']) {
-                            $this->setOptions($resource);
-                        }
-                        if($this->config['setGallery']){
-                            $this->setGallery((array)$item->picture, $resource);
-                        }
-                    }
-
-                    $this->options = [];
-                }
-                $this->log('[ImportFeed::importProducts] Импорт окончен. Импортировано товаров: ' . $c);
-                unset($xml);
-            } else {
-                $this->log('[ImportFeed::importProducts] Не удалось прочитать данные товаров из фида.', [], 1);
-            }
-        } else {
-            $this->log('[ImportFeed::importProducts] Не удалось получить данные товаров для чтения.', [], 1);
+        $id = $item->attributes()->id ? $item->attributes()->id->__toString() : '';
+        foreach ($item->param as $param) {
+            $this->options[$param->attributes()->name->__toString()] = $param->__toString();
+            unset($param);
         }
+        $productData = $this->getData($item, $this->config['productFields']);
+        $vendorData = $this->getData($item, $this->config['vendorFields']);
+        $productData = array_merge($this->config['productDefaultFields'], $productData, [
+            'feed_id' => $id,
+            'parent' => $this->getParentId($item->categoryId->__toString())
+        ]);
+        if ($this->config['removeEmpty']) {
+            $productData = array_filter($productData, function ($k, $v) {
+                return (in_array($k, ['published', 'show_in_tree', 'hidemenu']) || $v);
+            }, ARRAY_FILTER_USE_BOTH);
+            $vendorData = array_filter($vendorData, fn($el) => $el);
+        }
+        if ($vendorData['name']) {
+            $productData['vendor'] = $this->createVendor($vendorData);
+            unset($vendorData);
+        }
+        if ($resource = $this->modx->getObject($productData['class_key'], $this->manageResource($productData))) {
+            if ($this->config['setOptions']) {
+                $this->setOptions($resource);
+            }
+            if ($this->config['setGallery']) {
+                $this->setGallery((array)$item->picture, $resource);
+            }
+            unset($resource);
+        }
+        unset($item);
+        $this->options = [];
     }
 
     private function createVendor($vendorData)
@@ -175,7 +156,9 @@ class ImportFeed
         }
         $vendor->fromArray($vendorData, '', 1);
         $vendor->save();
-        return $vendor->get('id');
+        $id = $vendor->get('id');
+        unset($vendor);
+        return $id;
     }
 
     private function getData($item, $fields)
@@ -197,7 +180,9 @@ class ImportFeed
     private function getParentId($feedId)
     {
         if ($resource = $this->modx->getObject('modResource', ['feed_id' => $feedId])) {
-            return $resource->get('id');
+            $id = $resource->get('id');
+            unset($resource);
+            return $id;
         }
 
         return $this->manageResource(['feed_id' => $feedId]);
@@ -212,11 +197,11 @@ class ImportFeed
             $data['pagetitle'] = 'Ресурс ' . time();
         } else {
             if ($this->config['createUniquePagetitle']) {
-                $data['pagetitle'] .= ' ' . time();
+                $data['pagetitle'] .= ' ' . $data['feed_id'];
             }
         }
-        foreach ($this->config['truncated'] as $field => $length){
-            if($length){
+        foreach ($this->config['truncated'] as $field => $length) {
+            if ($length) {
                 $data[$field] = $this->truncate($data[$field], $length);
             }
         }
@@ -229,24 +214,26 @@ class ImportFeed
             $url = explode('/', $data['url']);
             $data['alias'] = $url[count($url) - 1];
         } else {
-            $data['alias'] = $resource->cleanAlias($data['pagetitle']);
+            $data['alias'] = $this->translit($data['pagetitle']);
         }
 
         $this->log('[ImportFeed::createResource] Будет обработан ресурс со следующими данными.', $data);
         $resource->fromArray($data, '', 1);
         $resource->save();
-        return $resource->get('id');
+        $id = $resource->get('id');
+        unset($resource);
+        return $id;
 
     }
 
     private function setOptions($resource)
     {
         if (!empty($this->options)) {
-
             foreach ($this->options as $name => $value) {
                 $option = $this->manageOption($name);
                 $this->manageCategoryOption($option, $resource);
                 $this->manageProductOption($option, $resource, $value);
+                unset($option);
             }
         }
     }
@@ -257,7 +244,7 @@ class ImportFeed
         if ($this->modx->getObject('msProductOption', array('product_id' => $res->id, 'key' => $option->key))) {
             $q = $this->modx->newQuery('msProductOption');
             $q->command('UPDATE');
-            $q->where(array('key' => $option->key,'product_id' => $res->id));
+            $q->where(array('key' => $option->key, 'product_id' => $res->id));
             $q->set(array('value' => $val));
             $q->prepare();
             $q->stmt->execute();
@@ -309,21 +296,37 @@ class ImportFeed
 
     private function setGallery($photos, $resource)
     {
-        if (empty($photos)) return false;
-        $this->log("[ImportFeed::setGallery] Устанавливаем галерею", $photos);
+        if (empty($photos)){
+            $this->log("[ImportFeed::setGallery] Фотографий для товара нет.");
+            return false;
+        }
+        $this->log("[ImportFeed::setGallery] Устанавливаем галерею ", $photos);
         if ($this->config['removeOldFiles']) {
             if ($files = $resource->getMany('Files')) {
                 foreach ($files as $f) {
                     $f->remove();
                 }
                 $this->log("[ImportFeed::setGallery] Старые файлы галереи были удалены");
+                unset($files);
             }
         }
         foreach ($photos as $url) {
             $this->log("[ImportFeed::setGallery] Обрабатывается фото {$url}");
             $path = $this->imagePath . basename($url);
             if (!file_exists($path)) {
-                $path = $this->download($url, $path);
+                if($this->config['allowDownloadImages']){
+                    $path = $this->download($url, $path);
+                    $this->log("[ImportFeed::setGallery] Фото загружено на сервер.");
+                }else{
+                    $this->log("[ImportFeed::setGallery] Фото отсутствует на сервере сервер и не было загружено по инициативе пользователя.");
+                    continue;
+                }
+            }
+            if(!$path || !filesize($path)){
+                if(!$path = $this->download($url, $path)){
+                    $this->log("[ImportFeed::setGallery] Фото отсутствует на сервере сервер или является пустым файлом. ");
+                    continue;
+                }
             }
             $data = [
                 'id' => $resource->get('id'),
@@ -335,38 +338,57 @@ class ImportFeed
                 'processors_path' => $this->modx->getOption('core_path') . 'components/minishop2/processors/mgr/',
             ]);
             if ($response->isError()) {
-                $this->log("[ImportFeed::setGallery] Не удалось загрузить фото в галерею", $response->getAllErrors());
+                $this->log("[ImportFeed::setGallery] Не удалось добавить фото в галерею ", $response->getAllErrors());
             } else {
-                $this->log("[ImportFeed::setGallery] Фото {$url} успешно загружено в галерею");
+                $this->log("[ImportFeed::setGallery] Фото {$url} успешно добавлено в галерею");
                 unlink($path);
             }
+            unset($path, $data, $response, $url);
         }
+        unset($photos);
     }
 
-    private function getXmlReader($filename, $search)
+    private function startReading($filename, $search, $method)
     {
-        //read xml file
         if (!$filename) {
-            $this->log("[ImportFeed::getXmlReader] Не передано имя файла фида.", [], 1);
+            $this->log("[ImportFeed::startReading] Не передано имя файла фида.", [], 1);
         }
+        $readingData = [
+            'offset' => 0,
+        ];
+        if (file_exists($this->basepath . 'readingdata.json')) {
+            $readingData = json_decode(file_get_contents($this->readingDataPath), 1);
+        }
+
         $reader = new XMLReader;
         $success = $reader->open($filename);
         if (!$success) {
-            $this->log("[ImportFeed::getXmlReader] Невозможно считать файл $filename. Возможно он содержит ошибки XML.", [], 1);
+            $this->log("[ImportFeed::startReading] Невозможно считать файл $filename. Возможно он содержит ошибки XML.", [], 1);
         }
 
+        $c = 0;
+        $end = $readingData['offset'] + $this->config['importStep'];
         while ($reader->read()) {
             if ($reader->name === $search) {
-                return $reader;
+                $xml = $reader->readOuterXML();
+                if (strpos($xml, "</$search>") !== false) {
+                    $c++;
+                    if ($c < $readingData['offset']) continue;
+                    if ($c < $end) {
+                        $this->log("[ImportFeed::startReading] Импортируем ресурс с порядковым номером $c");
+                        $this->log("[ImportFeed::startReading] memory usage: " . memory_get_usage() / 1048576);
+                        $this->$method(new SimpleXMLElement($xml));
+                    } else {
+                        $readingData['offset'] = $end;
+                        file_put_contents($this->readingDataPath, json_encode($readingData));
+                        die();
+                    }
+                    unset($xml);
+                }
             }
         }
-        $this->log("[ImportFeed::getXmlReader] Элемент $search не найден в файле $filename.", [], 1);
-    }
-
-    private function readXml($reader)
-    {
-        $outerXml = $reader->readOuterXML();
-        return $outerXml ? new SimpleXMLElement($outerXml) : null;
+        $reader->close();
+        unset($reader);
     }
 
     private function translit($value)

@@ -1,8 +1,7 @@
 <?php
 // php -d display_errors -d error_reporting=E_ALL ~/stroybat23/public_html/core/elements/importfeed.class.php
 return [
-    'rootCatalogId' => 8, // ID корневого каталога
-    'productTemplateId' => 10, // ID шаблона товара
+    'importStep' => 100,
     'feedUrl' => '', // ссылка на фид
     'feedPath' => 'import.xml', // путь к файлу фида на сервере, указывать от корня сайта
     'imagePath' => 'assets/img/', // путь для загрузки картинок, указывать от корня сайта
@@ -13,14 +12,14 @@ return [
     'removeEmpty' => true, // удалять свойства с пустыми значениями?
     'setGallery' => true, // установить галерею товара?
     'setOptions' => true, // установить опции товара?
-    'gallerySource' => 2, // удалять свойства с пустыми значениями?
-    'removeOldFiles' => true, // очистить галерею?
+    'removeOldFiles' => false, // очистить галерею перед добавлением новых фото?
+    'allowDownloadImages' => false, // разрешить загрузку картинок из удалённого источника?
     'truncated' => [
         'pagetitle' => 90,
         'longtitle' => '',
         'introtext' => '',
         'description' => '',
-    ], // список основных полей ресурса и их максимальная длина
+    ], // список основных полей ресурса и их максимальная длина, если хотите её ограничить
     'categoryDefaultFields' => [
         'parent' => 8,
         'template' => 8,
@@ -44,7 +43,7 @@ return [
         'made_in' => 'country_of_origin',
         'price' => 'price',
         'old_price' => 'oldprice'
-    ],
+    ], // сопоставление полей товара на сайте полям в файле
     'vendorFields' => [
         'name' => 'vendor',
         'resource' => '',
@@ -56,5 +55,5 @@ return [
         'email' => '',
         'description' => 'vendorCode',
         'properties' => ''
-    ]
+    ] // сопоставление полей производителя на сайте полям в файле
 ];
