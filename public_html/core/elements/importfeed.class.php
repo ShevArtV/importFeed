@@ -300,6 +300,9 @@ class ImportFeed
             $this->log("[ImportFeed::setGallery] Фотографий для товара нет.");
             return false;
         }
+        if(!is_dir($this->imagePath)){
+            mkdir($this->imagePath, 0700, 1);
+        }
         $this->log("[ImportFeed::setGallery] Устанавливаем галерею ", $photos);
         if ($this->config['removeOldFiles']) {
             if ($files = $resource->getMany('Files')) {

@@ -5,7 +5,7 @@ return [
     'feedUrl' => '', // ссылка на фид
     'feedPath' => 'import.xml', // путь к файлу фида на сервере, указывать от корня сайта
     'imagePath' => 'assets/img/', // путь для загрузки картинок, указывать от корня сайта
-    'importCategories' => true, // импортировать категории?
+    'importCategories' => false, // импортировать категории?
     'importProducts' => true, // импортировать товары?
     'createUniquePagetitle' => false, // создавать уникальный pagetitle?
     'saveAlias' => true, // сохранить псевдоним?
@@ -13,7 +13,7 @@ return [
     'setGallery' => true, // установить галерею товара?
     'setOptions' => true, // установить опции товара?
     'removeOldFiles' => false, // очистить галерею перед добавлением новых фото?
-    'allowDownloadImages' => false, // разрешить загрузку картинок из удалённого источника?
+    'allowDownloadImages' => true, // разрешить загрузку картинок из удалённого источника?
     'truncated' => [
         'pagetitle' => 90,
         'longtitle' => '',
