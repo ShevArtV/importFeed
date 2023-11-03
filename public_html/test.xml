@@ -11,9 +11,7 @@
         <categories>
             <category id="19723838">Ванны</category>
             <category id="19723842" parentId="19723838">Ванны мраморные</category>
-            <category id="19723839" parentId="19723838">Ванны акриловые</category>
             <category id="21368126" parentId="19723842">Ванны мраморные Aqua de Marco</category>
-            <category id="19723870" parentId="19723839">Ванны акриловые Roca</category>
         </categories>
         <offers>
             <offer id="305020995" available="true">
@@ -47,7 +45,7 @@
                 <url>https://www.stroybat23.ru/products/304893961-vanna_roca_hall_angular_150kh100_ekran_podgolovnik</url>
                 <price>32500.0</price>
                 <currencyId>RUR</currencyId>
-                <categoryId>19723870</categoryId>
+                <categoryId>21368126</categoryId>
                 <picture>https://st1.stblizko.ru/images/product/559/347/218_original.jpg</picture>
                 <picture>https://st1.stblizko.ru/images/product/559/347/425_original.jpg</picture>
                 <picture>https://st1.stblizko.ru/images/product/559/347/537_original.jpg</picture>
